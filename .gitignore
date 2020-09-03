@@ -1,0 +1,6 @@
+# Config file for the bot, includes bot token
+config.json
+
+# Image files for the bot
+*.jpg
+*.png
