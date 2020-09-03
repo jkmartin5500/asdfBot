@@ -4,3 +4,7 @@ config.json
 # Image files for the bot
 *.jpg
 *.png
+
+# Audio files used for clips
+*.mp3
+*.m4a

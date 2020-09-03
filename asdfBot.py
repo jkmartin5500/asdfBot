@@ -5,7 +5,7 @@ from discord.ext import commands
 
 import youtube_dl
 
-import random, json
+import random, json, os
 
 
 with open('config.json', 'r') as config:
@@ -105,6 +105,26 @@ class Music(commands.Cog):
         await ctx.send('Now playing: {}'.format(player.title))
 
 
+    @commands.command(name="clip", description = "Plays audio from a downloaded clip")
+    async def _clip(self, ctx, *, query):
+        clips = [f for f in os.listdir('.') if f.endswith('m4a') or f.endswith('mp3')]
+
+        if query == "list":
+            return await ctx.send("```Available clips:\n\t" + '\n\t'.join(["{}. {}".format(i+1, f) for i, f in enumerate(clips)]) + "```")
+
+        # Choose query
+        if query not in clips:
+            for clip in clips:
+                if clip.lower().startswith(query.lower()):
+                    query = clip
+                    break
+
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
+        ctx.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
+
+        await ctx.send('Now playing: {}'.format(query))
+
+
     @commands.command(name = "stop", description = "Disconnects bot from voice channel")
     async def stop(self, ctx):
         await ctx.voice_client.disconnect()
@@ -120,6 +140,7 @@ class Music(commands.Cog):
 
 
     @_play.before_invoke
+    @_clip.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
