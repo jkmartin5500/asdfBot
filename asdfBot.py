@@ -41,6 +41,23 @@ class Basic(commands.Cog):
         await ctx.send("I choose " + random.choice(' '.join([arg for arg in args if arg not in {'or', 'and'}])))
 
 
+ytdl = youtube_dl.YoutubeDL({
+    'format': 'bestaudio/best',
+    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+    })
+
+ffmpeg_options = {'options': '-vn'}
+
+
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -56,25 +73,9 @@ class Music(commands.Cog):
             self.url = data.get('url')
 
         @classmethod
-        async def from_url(cls, url, *, loop=None, stream=False):
-            ytdl = youtube_dl.YoutubeDL({
-                'format': 'bestaudio/best',
-                'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-                'restrictfilenames': True,
-                'noplaylist': True,
-                'nocheckcertificate': True,
-                'ignoreerrors': False,
-                'logtostderr': False,
-                'quiet': True,
-                'no_warnings': True,
-                'default_search': 'auto',
-                'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
-            })
-
-            ffmpeg_options = {'options': '-vn'}
-
+        async def from_url(cls, url, *, loop=None, stream=False, options=ytdl):
             loop = loop or asyncio.get_event_loop()
-            data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+            data = await loop.run_in_executor(None, lambda: options.extract_info(url, download=not stream))
 
             if 'entries' in data:
                 # take first item from a playlist
@@ -97,7 +98,7 @@ class Music(commands.Cog):
 
 
     @commands.command(name="play", description = "Streams audio from a given youtube url",  aliases = ("stream", "yt"))
-    async def _play(self, ctx, *, url):
+    async def _play(self, ctx, url):
         async with ctx.typing():
             player = await self.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
@@ -106,23 +107,44 @@ class Music(commands.Cog):
 
 
     @commands.command(name="clip", description = "Plays audio from a downloaded clip")
-    async def _clip(self, ctx, *, query):
-        clips = [f for f in os.listdir('.') if f.endswith('m4a') or f.endswith('mp3')]
+    async def _clip(self, ctx, query):
+        clips = [f for f in os.listdir('./audio_clips') if f.endswith(('m4a', '.mp3', '.webm'))]
 
         if query == "list":
             return await ctx.send("```Available clips:\n\t" + '\n\t'.join(["{}. {}".format(i+1, f) for i, f in enumerate(clips)]) + "```")
 
         # Choose query
-        if query not in clips:
-            for clip in clips:
-                if clip.lower().startswith(query.lower()):
-                    query = clip
-                    break
+        for clip in clips:
+            if clip.lower().startswith(query.lower()):
+                query = './audio_clips/' + clip
+                break
 
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
         ctx.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
 
-        await ctx.send('Now playing: {}'.format(query))
+        await ctx.send('Now playing: {}'.format(query.split('/')[-1]))
+
+    @commands.command(name="download", description = "Downloads given youtube url")
+    async def _download(self, ctx, url, *name):
+        name = ' '.join(name)
+        dl_options = youtube_dl.YoutubeDL({
+            'format': 'bestaudio/best',
+            'outtmpl': './audio_clips/{}.%(ext)s'.format(name),
+            'restrictfilenames': True,
+            'noplaylist': True,
+            'nocheckcertificate': True,
+            'ignoreerrors': False,
+            'logtostderr': False,
+            'quiet': True,
+            'no_warnings': True,
+            'default_search': 'auto',
+            'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+            })
+
+        async with ctx.typing():
+            player = await self.YTDLSource.from_url(url, loop=self.bot.loop, options=dl_options)
+
+        await ctx.send('Now downloading: {}'.format(player.title))
 
 
     @commands.command(name = "stop", description = "Disconnects bot from voice channel")

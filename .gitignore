@@ -8,3 +8,4 @@ config.json
 # Audio files used for clips
 *.mp3
 *.m4a
+*.webm
