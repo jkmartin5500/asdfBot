@@ -5,7 +5,7 @@ from discord.ext import commands
 
 import youtube_dl
 
-import random, json, os
+import random, json, os, collections
 
 
 with open('config.json', 'r') as config:
@@ -29,8 +29,7 @@ class Basic(commands.Cog):
         try:
             rolls, limit = map(int, arg.split('d'))
         except Exception:
-            await ctx.send("Format has to be in NdN!")
-            return
+            return await ctx.send("Format has to be in NdN!")
 
         result = [random.randint(1, limit) for r in range(rolls)]
         await ctx.send(', '.join(str(i) for i in result) + "\tSum: " + str(sum(result)))
@@ -38,7 +37,24 @@ class Basic(commands.Cog):
 
     @commands.command(name="choose", description = "Chooses from a group of choices")
     async def _choose(self, ctx, *args):
-        await ctx.send("I choose " + random.choice(' '.join([arg for arg in args if arg not in {'or', 'and'}])))
+        await ctx.send("I choose " + random.choice(' '.join([arg for arg in args if arg not in {'or', 'and', ' '}])))
+
+
+    @commands.command(name="team", description = "Picks teams from 5 people given in order best to worst")
+    async def _team(self, ctx, *args):
+        if len(args) % 2 == 0:
+            teams = list(args)
+            # Two best stay separate
+            # Next two best shuffle
+            teams[2:4] = random.sample(teams[2:4], len(teams[2:4]))
+            # Middle Players random
+            teams[4:8] = random.sample(teams[4:8], len(teams[4:8]))
+            # Worst two stay separate
+            teams[8:10] = random.sample(teams[8:10], len(teams[8:10]))
+
+            return await ctx.send('\n'.join(["Team 1:"] + teams[0:len(teams):2] + ["Team 2:"] + teams[1:len(teams):2]))
+        await ctx.send("Teams uneven")
+
 
 
 ytdl = youtube_dl.YoutubeDL({
@@ -61,6 +77,7 @@ ffmpeg_options = {'options': '-vn'}
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.song_queue = collections.deque()
 
 
     class YTDLSource(discord.PCMVolumeTransformer):
@@ -71,6 +88,7 @@ class Music(commands.Cog):
 
             self.title = data.get('title')
             self.url = data.get('url')
+
 
         @classmethod
         async def from_url(cls, url, *, loop=None, stream=False, options=ytdl):
@@ -101,16 +119,29 @@ class Music(commands.Cog):
     async def _play(self, ctx, url):
         async with ctx.typing():
             player = await self.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            if not ctx.voice_client.is_playing():
+                ctx.voice_client.play(player, after=lambda e: self._play_queue(ctx))
+                return await ctx.send("Now playing: {}".format(player.title))
+            else:
+                self.song_queue.append(player)
+                return await ctx.send("Queuing {}".format(player.title))
 
-        await ctx.send('Now playing: {}'.format(player.title))
+
+    @commands.command(name="queue", description= "Lists songs in the queue", aliases= ("list", "songs"))
+    async def _queue(self, ctx):
+        return await ctx.send("```Queue:\n\t" + '\n\t'.join(["{}. {}".format(i+1, p.title) for i, p in enumerate(list(self.song_queue))]) + "```")
 
 
-    @commands.command(name="clip", description = "Plays audio from a downloaded clip")
-    async def _clip(self, ctx, query):
-        clips = [f for f in os.listdir('./audio_clips') if f.endswith(('m4a', '.mp3', '.webm'))]
+    def _play_queue(self, ctx):
+        if len(self.song_queue) > 0:
+            ctx.voice_client.play(self.song_queue.pop(), after=lambda e: self._play_queue(ctx))
 
-        if query == "list":
+
+    @commands.command(name="clip", description = "Plays audio from a downloaded clip, give no argument to list the clips")
+    async def _clip(self, ctx, query=None):
+        clips = [f for f in os.listdir('./audio_clips') if f.endswith(('.m4a', '.mp3', '.webm'))]
+
+        if not query:
             return await ctx.send("```Available clips:\n\t" + '\n\t'.join(["{}. {}".format(i+1, f) for i, f in enumerate(clips)]) + "```")
 
         # Choose query
@@ -124,7 +155,8 @@ class Music(commands.Cog):
 
         await ctx.send('Now playing: {}'.format(query.split('/')[-1]))
 
-    @commands.command(name="download", description = "Downloads given youtube url")
+
+    @commands.command(name="download", description = "Downloads given youtube url and names the file")
     async def _download(self, ctx, url, *name):
         name = ' '.join(name)
         dl_options = youtube_dl.YoutubeDL({
@@ -142,14 +174,23 @@ class Music(commands.Cog):
             })
 
         async with ctx.typing():
-            player = await self.YTDLSource.from_url(url, loop=self.bot.loop, options=dl_options)
+            player = await self.YTDLSource.from_url(url, loop=self.bot.loop, stream=False, options=dl_options)
 
-        await ctx.send('Now downloading: {}'.format(player.title))
+        await ctx.send('Now downloading: {} as {}'.format(player.title, player.title))
 
 
     @commands.command(name = "stop", description = "Disconnects bot from voice channel")
-    async def stop(self, ctx):
+    async def _stop(self, ctx):
         await ctx.voice_client.disconnect()
+
+
+    @commands.command(name = "skip", description = "Disconnects bot from voice channel")
+    async def _skip(self, ctx):
+        async with ctx.typing():
+            ctx.voice_client.stop()
+            await ctx.send("Skipping...\nNow playing {}".format(self.song_queue[0].title))
+            self._play_queue(ctx)
+        return
 
 
     @commands.command(name = "volume", description = "Changes the volume of the player")
@@ -170,8 +211,6 @@ class Music(commands.Cog):
             else:
                 await ctx.send("You are not connected to a voice channel.")
                 raise commands.CommandError("Author not connected to a voice channel.")
-        elif ctx.voice_client.is_playing():
-            ctx.voice_client.stop()
 
 
 @client.event
