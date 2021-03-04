@@ -7,21 +7,21 @@ class Standard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="roll", description = "Rolls dice in NdN format")
+    @commands.command(name="roll", description="Rolls dice in NdN format")
     async def _roll(self, ctx, arg: str):
         try:
             rolls, limit = map(int, arg.split('d'))
-        except Exception:
+        except ValueError:
             return await ctx.send("Format has to be in NdN!")
 
-        result = [random.randint(1, limit) for r in range(rolls)]
+        result = [random.randint(1, limit) for _ in range(rolls)]
         await ctx.send(', '.join(str(i) for i in result) + "\tSum: " + str(sum(result)))
 
-    @commands.command(name="choose", description = "Chooses from a group of choices")
+    @commands.command(name="choose", description="Chooses from a group of choices")
     async def _choose(self, ctx, *args):
         await ctx.send("I choose " + random.choice(' '.join([arg for arg in args if arg not in {'or', 'and', ' '}])))
 
-    @commands.command(name="team", description = "Picks teams from 5 people given in order best to worst")
+    @commands.command(name="team", description="Picks teams from 5 people given in order best to worst")
     async def _team(self, ctx, *args):
         if len(args) % 2 == 0:
             teams = list(args)

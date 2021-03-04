@@ -10,14 +10,14 @@ with open('config.json', 'r') as config:
     TOKEN = json.loads(config.read())['token']
 
 description = ''' An all purpose discord bot for everyday use '''
-client = commands.Bot(command_prefix=commands.when_mentioned_or("!"), description = description)
+client = commands.Bot(command_prefix=commands.when_mentioned_or("!"), description=description)
 
 
 class Main(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="ping", description = "pong")
+    @commands.command(name="ping", description="pong")
     async def _ping(self, ctx):
         await ctx.send("pong")
 
