@@ -1,4 +1,5 @@
 import json
+import os
 
 import discord
 from discord.ext import commands
@@ -7,7 +8,7 @@ import Music_Commands
 import Standard_Commands
 import Chess_commands
 
-with open('config.json', 'r') as config:
+with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json', 'r') as config:
     TOKEN = json.loads(config.read())['token']
 
 description = ''' An all purpose discord bot for everyday use '''
@@ -35,6 +36,6 @@ async def on_ready():
 if __name__ == "__main__":
     client.add_cog(Main(client))
     client.add_cog(Standard_Commands.Standard(client))
-    client.add_cog(Music_Commands.Music(client))
+    # client.add_cog(Music_Commands.Music(client))
     client.add_cog(Chess_commands.Chess(client))
     client.run(TOKEN)
