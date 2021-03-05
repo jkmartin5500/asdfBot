@@ -8,7 +8,7 @@ import Music_Commands
 import Standard_Commands
 import Chess_commands
 
-with open(os.path.dirname(os.path.realpath(__file__)) + '\config.json', 'r') as config:
+with open(os.path.dirname(os.path.realpath(__file__)) + '/config.json', 'r') as config:
     TOKEN = json.loads(config.read())['token']
 
 description = ''' An all purpose discord bot for everyday use '''
