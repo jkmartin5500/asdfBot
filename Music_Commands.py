@@ -81,47 +81,47 @@ class Music(commands.Cog):
         if len(self.song_queue) > 0:
             ctx.voice_client.play(self.song_queue.pop(), after=lambda e: self._play_queue(ctx))
 
-    @commands.command(name="clip", description="Plays audio from a downloaded clip, give no argument to list the clips")
-    async def _clip(self, ctx, query=None):
-        clips = [f for f in os.listdir('./audio_clips') if f.endswith(('.m4a', '.mp3', '.webm'))]
+    # @commands.command(name="clip", description="Plays audio from a downloaded clip, give no argument to list the clips")
+    # async def _clip(self, ctx, query=None):
+    #     clips = [f for f in os.listdir('./audio_clips') if f.endswith(('.m4a', '.mp3', '.webm'))]
 
-        if not query:
-            return await ctx.send(
-                "```Available clips:\n\t" +
-                '\n\t'.join([f"{i+1}. {f}" for i, f in enumerate(clips)]) + "```")
+    #     if not query:
+    #         return await ctx.send(
+    #             "```Available clips:\n\t" +
+    #             '\n\t'.join([f"{i+1}. {f}" for i, f in enumerate(clips)]) + "```")
 
-        # Choose query
-        for clip in clips:
-            if clip.lower().startswith(query.lower()):
-                query = './audio_clips/' + clip
-                break
+    #     # Choose query
+    #     for clip in clips:
+    #         if clip.lower().startswith(query.lower()):
+    #             query = './audio_clips/' + clip
+    #             break
 
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
-        ctx.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
+    #     source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
+    #     ctx.voice_client.play(source, after=lambda e: print('Player error: %s' % e) if e else None)
 
-        await ctx.send(f"Now playing: {query.split('/')[-1]}")
+    #     await ctx.send(f"Now playing: {query.split('/')[-1]}")
 
-    @commands.command(name="download", description="Downloads given youtube url and names the file")
-    async def _download(self, ctx, url, *name):
-        name = ' '.join(name)
-        dl_options = youtube_dl.YoutubeDL({
-            'format': 'bestaudio/best',
-            'outtmpl': f'./audio_clips/{name}.%(ext)s',
-            'restrictfilenames': True,
-            'noplaylist': True,
-            'nocheckcertificate': True,
-            'ignoreerrors': False,
-            'logtostderr': False,
-            'quiet': True,
-            'no_warnings': True,
-            'default_search': 'auto',
-            'source_address': '0.0.0.0'  # bind to ipv4 since ipv6 addresses cause issues sometimes
-            })
+    # @commands.command(name="download", description="Downloads given youtube url and names the file")
+    # async def _download(self, ctx, url, *name):
+    #     name = ' '.join(name)
+    #     dl_options = youtube_dl.YoutubeDL({
+    #         'format': 'bestaudio/best',
+    #         'outtmpl': f'./audio_clips/{name}.%(ext)s',
+    #         'restrictfilenames': True,
+    #         'noplaylist': True,
+    #         'nocheckcertificate': True,
+    #         'ignoreerrors': False,
+    #         'logtostderr': False,
+    #         'quiet': True,
+    #         'no_warnings': True,
+    #         'default_search': 'auto',
+    #         'source_address': '0.0.0.0'  # bind to ipv4 since ipv6 addresses cause issues sometimes
+    #         })
 
-        async with ctx.typing():
-            player = await self.YTDLSource.from_url(url, loop=self.bot.loop, stream=False, options=dl_options)
+    #     async with ctx.typing():
+    #         player = await self.YTDLSource.from_url(url, loop=self.bot.loop, stream=False, options=dl_options)
 
-        await ctx.send(f'Now downloading: {player.title} as {player.title}')
+    #     await ctx.send(f'Now downloading: {player.title} as {player.title}')
 
     @commands.command(name="stop", description="Disconnects bot from voice channel")
     async def _stop(self, ctx):

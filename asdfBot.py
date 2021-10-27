@@ -36,6 +36,6 @@ async def on_ready():
 if __name__ == "__main__":
     client.add_cog(Main(client))
     client.add_cog(Standard_Commands.Standard(client))
-    # client.add_cog(Music_Commands.Music(client))
+    client.add_cog(Music_Commands.Music(client))
     client.add_cog(Chess_commands.Chess(client))
     client.run(TOKEN)
