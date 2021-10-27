@@ -26,6 +26,7 @@ ffmpeg_options = {'options': '-vn'}
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        discord.opus.load_opus()
         self.song_queue = collections.deque()
 
     class YTDLSource(discord.PCMVolumeTransformer):
