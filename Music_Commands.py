@@ -144,7 +144,7 @@ class Music(commands.Cog):
         await ctx.send(f"Changed volume to {volume}%")
 
     @_play.before_invoke
-    @_clip.before_invoke
+    # @_clip.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
