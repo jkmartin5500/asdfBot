@@ -9,3 +9,7 @@ config.json
 *.mp3
 *.m4a
 *.webm
+*.wav
+
+# Ignore the audio_clips folder
+audio_clips/**
