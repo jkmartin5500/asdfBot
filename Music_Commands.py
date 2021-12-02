@@ -60,10 +60,10 @@ class Music(commands.Cog):
             return await ctx.voice_client.move_to(channel)
         return await channel.connect()
 
-    @commands.command(name="play", description="Streams audio from a given youtube url",  aliases=("stream", "yt"))
-    async def _play(self, ctx, url):
+    @commands.command(name="play", description="Streams audio from a given youtube video",  aliases=("stream", "yt"))
+    async def _play(self, ctx, *args):
         async with ctx.typing():
-            player = await self.YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+            player = await self.YTDLSource.from_url(' '.join(args), loop=self.bot.loop, stream=True)
             if not ctx.voice_client.is_playing():
                 ctx.voice_client.play(player, after=lambda e: self._play_queue(ctx))
                 return await ctx.send(f"Now playing: {player.title}")
