@@ -1,0 +1,12 @@
+from discord.ext import commands
+import boto3
+
+class Minecraft(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+        # self.lambda_client = boto3.client('lambda')
+
+    commands.command(name="server", aliases=("minecraft"), description="Starts the minecraft server")
+    async def _start_server(self, ctx, arg: str):
+        pass
