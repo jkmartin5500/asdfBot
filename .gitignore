@@ -1,6 +1,9 @@
 # Config file for the bot, includes bot token
 config.json
 
+# __pychache__
+__pychache__/
+
 # Image files for the bot
 *.jpg
 *.png
