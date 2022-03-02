@@ -25,16 +25,20 @@ class Wordle(commands.Cog):
         elif guess not in self.wordlist:
             return False, "Guess not in word list."
 
-        # Get to use reacts
-        response = ""
+        # TODO reacts instead of '\\'
+        response = ['\\' for _ in range(5)]
+
+        # Match correct letters
         for i in range(len(guess)):
             if guess[i] == word[i]:
-                response += guess[i].upper()
-            elif guess[i] in word:
-                response += guess[i].lower()
-            else:
-                response += '\\'
-        return True, response
+                response [i] = guess[i].upper()
+        
+        # Match improperly placed letters
+        for i in range(len(guess)):
+            if guess[i] in word and response.count(guess[i].upper()) < word.count(guess[i]) and guess[i] != word[i]:
+                response[i] = guess[i].lower()
+
+        return True, ''.join(response)
 
     @commands.command(name="wordle", description="Starts a wordle game with the server")
     async def _wordle(self, ctx):
