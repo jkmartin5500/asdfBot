@@ -1,6 +1,7 @@
 import random
 
 from discord.ext import commands
+from asyncio.exceptions import TimeoutError
 
 
 class Wordle(commands.Cog):
@@ -38,21 +39,29 @@ class Wordle(commands.Cog):
     async def _wordle(self, ctx):
         tries = 6
         word = self.wordlist[random.randint(0, len(self.wordlist))]
-        await ctx.send(f"```Now Playing Wordle with {ctx.author.name}\nGuess the hidden word in 6 tries.\nAfter each guess:\n\tA capital letter means a correct letter.\n\tA lowercase letter means the letter is in the wrong spot.\n\tAnd a \\ means the letter was wrong.\nHint: the word is {word.upper()}```")
+        await ctx.send(f"```Now Playing Wordle with {ctx.author.name}\nGuess the hidden word in 6 tries.\nAfter each guess:\n\tA capital letter means a correct letter.\n\tA lowercase letter means the letter is in the wrong spot.\n\tAnd a \\ means the letter was wrong.```")
         while tries > 0:
             valid = False
             while not valid:
-                msg = await self.bot.wait_for('message', check=lambda message: (message.author == ctx.author and message.content.split(' ')[0] == "!guess"))
-                guess = msg.content.content.split(' ')[1].lower()
+                try:
+                    msg = await self.bot.wait_for('message', check=lambda message: (message.author == ctx.author and message.content.split(' ')[0] == ".guess" and len(message.content.split(' ')) == 2), timeout=120)
+                except TimeoutError:
+                    return await ctx.send("```No guesses have been made in 120 seconds, timing out.```")
+
+                guess = msg.content.split(' ')[1].lower()
+
                 valid, response = self.check(word, guess)
+
                 if valid:
                     tries -= 1
 
+                if response == "quit":
+                    return await ctx.send(f"```{ctx.author} quit. The word was {word.upper()}.```")
+
                 if response == response.upper() and '\\' not in response:
-                    await ctx.send(f"```Correct! The word was {word.upper()}. You got it in {6-tries} guesses```")
-                    return
+                    return await ctx.send(f"```Correct! The word was {word.upper()}. You got it in {6-tries} guesses```")
                 else:
                     plural = "guess" if tries == 1 else "guesses"
                     await ctx.send(f"```{response}\t{tries} {plural} left```")
         if tries == 0:
-            await ctx.send(f"```You didn't get the word, it was {word.upper()}```")
+            return await ctx.send(f"```You didn't get the word, it was {word.upper()}```")
