@@ -12,7 +12,7 @@ class Wordle(commands.Cog):
     def get_words(self):
         with open("./words.txt") as file:
             content = file.read()
-            wordlist = content.split('","')
+            wordlist = content.split(',')
         return wordlist
 
     def check(self, word, guess):
