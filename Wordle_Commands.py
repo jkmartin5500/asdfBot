@@ -2,6 +2,7 @@ import random
 
 from discord.ext import commands
 
+
 class Wordle(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -19,7 +20,7 @@ class Wordle(commands.Cog):
             return False, "Guess must be 5 characters."
         elif guess not in self.wordlist:
             return False, "Guess not in word list."
-            
+
         # Get to use reacts
         response = ""
         for i in range(len(guess)):
@@ -34,7 +35,7 @@ class Wordle(commands.Cog):
     @commands.command(name="wordle", description="Starts a wordle game with the server")
     async def _wordle(self, ctx):
         tries = 6
-        word = self.wordlist[random.randint(0,len(self.wordlist))]
+        word = self.wordlist[random.randint(0, len(self.wordlist))]
         await ctx.send(f"```Now Playing Wordle with {ctx.author.name}\nGuess the hidden word in 6 tries.\nAfter each guess:\n\tA capital letter means a correct letter.\n\tA lowercase letter means the letter is in the wrong spot.\n\tAnd a \\ means the letter was wrong.\nHint: the word is {word.upper()}```")
         while tries > 0:
             valid = False
