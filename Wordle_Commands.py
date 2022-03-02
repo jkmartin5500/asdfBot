@@ -16,6 +16,7 @@ class Wordle(commands.Cog):
         return wordlist
 
     def check(self, word, guess):
+        # If correct, take off list
         # Check if valid guess
         if guess == "quit":
             return True, "quit"
@@ -44,9 +45,9 @@ class Wordle(commands.Cog):
             valid = False
             while not valid:
                 try:
-                    msg = await self.bot.wait_for('message', check=lambda message: (message.author == ctx.author and message.content.split(' ')[0] == ".guess" and len(message.content.split(' ')) == 2), timeout=120)
+                    msg = await self.bot.wait_for('message', check=lambda message: (message.author == ctx.author and message.content.split(' ')[0] == ".guess" and len(message.content.split(' ')) == 2), timeout=600)
                 except TimeoutError:
-                    return await ctx.send("```No guesses have been made in 120 seconds, timing out.```")
+                    return await ctx.send(f"```No guesses have been made in 10 minutes, timing out. Word was {word.upper()}```")
 
                 guess = msg.content.split(' ')[1].lower()
 
