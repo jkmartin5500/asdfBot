@@ -6,7 +6,7 @@ from discord.ext import commands
 
 import Music_Commands
 import Standard_Commands
-import Chess_Commands
+# import Chess_Commands
 # import Minecraft_Commands
 import Wordle_Commands
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     client.add_cog(Main(client))
     client.add_cog(Standard_Commands.Standard(client))
     client.add_cog(Music_Commands.Music(client))
-    client.add_cog(Chess_Commands.Chess(client))
+    # client.add_cog(Chess_Commands.Chess(client))
     # client.add_cog(Minecraft_Commands.Minecraft(client))
     client.add_cog(Wordle_Commands.Wordle(client))
     client.run(TOKEN)

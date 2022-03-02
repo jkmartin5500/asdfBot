@@ -16,6 +16,8 @@ class Wordle(commands.Cog):
 
     def check(self, word, guess):
         # Check if valid guess
+        if guess == "quit":
+            return True, "quit"
         if len(guess) != 5:
             return False, "Guess must be 5 characters."
         elif guess not in self.wordlist:
@@ -40,8 +42,8 @@ class Wordle(commands.Cog):
         while tries > 0:
             valid = False
             while not valid:
-                msg = await self.bot.wait_for('message', check=lambda message: message.author == ctx.author)
-                guess = msg.content.lower()
+                msg = await self.bot.wait_for('message', check=lambda message: (message.author == ctx.author and message.content.split(' ')[0] == "!guess"))
+                guess = msg.content.content.split(' ')[1].lower()
                 valid, response = self.check(word, guess)
                 if valid:
                     tries -= 1
