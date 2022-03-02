@@ -44,7 +44,7 @@ class Wordle(commands.Cog):
     async def _wordle(self, ctx):
         tries = 6
         word = self.wordlist[random.randint(0, len(self.wordlist))]
-        await ctx.send(f"```Now Playing Wordle with {ctx.author.name}\nGuess the hidden word in 6 tries.\nAfter each guess:\n\tA capital letter means a correct letter.\n\tA lowercase letter means the letter is in the wrong spot.\n\tAnd a \\ means the letter was wrong.```")
+        await ctx.send(f"```Now Playing Wordle with {ctx.author.name}\nGuess the hidden word in 6 tries using '.guess [word]'.\nAfter each guess:\n\tA capital letter means a correct letter.\n\tA lowercase letter means the letter is in the wrong spot.\n\tAnd a \\ means the letter was wrong.```")
         while tries > 0:
             valid = False
             while not valid:
@@ -70,3 +70,9 @@ class Wordle(commands.Cog):
                     await ctx.send(f"```{response}\t{tries} {plural} left```")
         if tries == 0:
             return await ctx.send(f"```You didn't get the word, it was {word.upper()}```")
+
+    # TODO
+    # solver / most likely words
+    # user scores
+    # letters left
+    # filter wordlist based on dictionary
